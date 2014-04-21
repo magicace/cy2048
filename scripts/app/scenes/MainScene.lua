@@ -12,9 +12,9 @@ end)
 function MainScene:ctor()
     -- self.backCnt = 0
     self.bg = display.newColorLayer(ccc4(240,228,210,255)):addTo(self):hide()
-    self.gameCtrl = require("app.controller.GameController").new():addTo(self):hide()
+    self.gameCtrl = require("app.controller.GameController").new():addTo(self)
     local spt = display.newSprite("#2048.png")
-    self.spt = spt
+    self.logoSpt = spt
     spt:addTo(self):pos(display.cx,display.cy)
     spt:runAction(transition.sequence({
         CCScaleTo:create(0.8,1.5),
@@ -28,12 +28,11 @@ function MainScene:ctor()
 end
 
 function MainScene:startGame()
-    self.spt:fadeOut(0.3)
+    self.logoSpt:fadeOut(0.3)
     self.bg:show()
-    self.gameCtrl:show()
     self.gameCtrl:startGame()
     self:performWithDelay(function ()
-        self.spt:removeSelf()
+        self.logoSpt:removeSelf()
     end, 0.5)
 end
 
@@ -49,24 +48,6 @@ function MainScene:onEnter()
         end, 0.5)
     end
 end
-
--- function MainScene:onAndroidBack(keypadEvent)
---     local lockSt
---     if keypadEvent == "back" then
---         lockSt = self.gameCtrl.view:exitHint(true)
---         self.backCnt = self.backCnt + 1
---         if self.backCnt == 2 then
---             self.gameCtrl.view:exitHint(false)
---             self.gameCtrl.game:saveGameData(not lockSt)
---             app.exit()
---         else
---             self:performWithDelay(function ()
---                 self.backCnt = 0
---                 self.gameCtrl.view:exitHint(false)
---             end, 1.5)
---         end
---     end
--- end
 
 function MainScene:onExit()
 end

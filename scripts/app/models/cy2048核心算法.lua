@@ -152,7 +152,7 @@ function GameModel:downMap(srcMap)
 	return map
 end
 
--- 响应玩家的移动事件
+-- 响应View中玩家的移动事件
 function GameModel:move(eventId)
 	--由self.map变换成对应map
 	local map =	eventId == TOUCH_MOVED_UP and self:upMap(self.map)

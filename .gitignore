@@ -1,0 +1,7 @@
+proj.android
+proj.ios
+proj.mac
+proj.win32
+res/game.zip
+data.txt
+*.log

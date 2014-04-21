@@ -16,6 +16,7 @@
 -- 5.scale 项目图片的总缩放系数（项目图片需要自己做scale，但是缩放的系数要传入）
 -- 6.x,y 在模式1-2为菜单坐标(项目区域的中心位置)，模式3-5为第一个item的坐标
 -- 7.backPic 模式1,4用的图案背景的文件名
+-- 8.fixedW 模式5用的固定宽度
 
 -- 用于项目排列的时候调用AutoItems.create(params)即可
 -- 用于创建菜单，调用AutoItems.initItems(params)，原参数中的items会自动排列好位置。

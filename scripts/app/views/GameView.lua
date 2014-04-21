@@ -15,8 +15,6 @@ function GameView:ctor(listener)
     self.cell = {}
     self:createScoreBoard()
     self.board = self:createBoard():addTo(self)
-    -- --初始时暂时关闭触摸
-    self:lockBoard()
     self.listener = listener
     self:showMsg(Lang.info.start)
 end
@@ -26,7 +24,6 @@ function GameView:lockBoard(unlock)
     self.board:setTouchEnabled(unlock)
     self.boardLocked = not unlock
     self.boardMask:setVisible(not unlock)
-    self.logo:setTouchEnabled(unlock)
 end
 
 function GameView:startGame(game)
@@ -47,11 +44,12 @@ function GameView:startGame(game)
     self:showMsg(Lang.info.guide)
 end
 
--- 创建GameLogo、分数板、新游戏按钮
+-- 创建GameLogo、分数板、各种隐藏功能按钮
 function GameView:createScoreBoard()
     local scale = (display.height - 960) /960
     local topY = display.top - 70*(1+scale)  --不同分辨率下的Y坐标
-    -- 当前分数的分数板 = save按钮
+
+    -- 当前分数板 = save按钮
     local currScoreBack = display.newScale9Sprite("#vBox.png",400,topY,CCSize(120,80)):addTo(self)
     ui.newTTFLabel({
         text=Lang.title.currScore,
@@ -60,9 +58,9 @@ function GameView:createScoreBoard()
     self.currScoreLabel = ui.newTTFLabel({
         text="0",size=24,x=60,y=20,align=ui.TEXT_ALIGN_CENTER
     }):addTo(currScoreBack)
-    -- self.saveButton = TouchNode.new(currScoreBack,handler(self, self.onSaveTouched))
+    self.saveButton = TouchNode.new(currScoreBack,handler(self, self.onSaveTouched))
 
-    -- 最高分的分数板 = exit按钮
+    -- 最高分数板 = exit按钮
     local bestScoreBack = display.newScale9Sprite("#vBox.png",530,topY,CCSize(120,80)):addTo(self)
     ui.newTTFLabel({
         text=Lang.title.bestScore,
@@ -98,13 +96,37 @@ function GameView:createScoreBoard()
     self.newButton = TouchNode.new(button,handler(self,self.onNewTouched))
 end
 
+-- 创建游戏区
+function GameView:createBoard()
+    local items = {}
+    for i=1,16 do
+        items[i] = display.newSprite("#vBox1.png")
+    end
+    local params = {
+        items = items,
+        mode = 1,
+        cols = 4,
+        spacing = 10,
+        border = 10,
+        backPic = "#vBox.png"
+    } --用autoItems将16个框按每列4个，间距10点自动排好，背景框加好。
+    local board = AutoItems.create(params) 
+    -- 加灰度遮罩(默认隐藏，当游戏失败或达到最大8192时，锁定游戏状态时显示) 
+    self.boardMask = Auto.addMask(board)
+    -- 从返回的参数中获得每个格子的位置信息(贴图位置,直接可用)
+    self.pos = params.pos
+    -- 让board成为一个TouchNode，接受触摸事件
+    board =  TouchNode.new(board,handler(self,self.onBoardTouched))
+    return board
+end
+
 -- NewGame按钮被touch
 function GameView:onNewTouched(eventId)
     self.newButton:setColor(ccc3(255,0,0))
     if self.boardLocked or self.isBegin then 
         --如果游戏区是锁定的，说明已经lost或者win,直接开始
         self.listener(TOUCH_RESTART_EVENT)
-    else --否则说明玩家在游戏中，需要一定确认机制防止误点
+    else --否则说明在游戏中，需要一定确认机制防止误点
         if eventId == TOUCH_PRESSED then
             --如果是长按事件(按住1秒以上)，开始新游戏
             self.listener(TOUCH_RESTART_EVENT)
@@ -126,7 +148,21 @@ function GameView:onExitTouched()
     end, 0.5)
 end
 
--- Logo图标被touch，提供undo操作
+--Save按钮被touch，手动保存游戏进度，隐藏功能
+function GameView:onSaveTouched(eventId)
+    if self.boardLocked then return end
+    if eventId == TOUCH_PRESSED then
+        self.saveButton:setColor(ccc3(255,0,0))
+        self.game:saveGameData(true)
+        self:showMsg(Lang.info.saved)
+        self:performWithDelay(function ()
+            self.saveButton:setColor(ccc3(255,255,255))
+        end, 0.5)
+    end
+    --其他操作不做任何提示
+end
+
+-- Logo图标被touch，提供undo操作，隐藏功能
 function GameView:onLogoTouched(eventId)
     if self.boardLocked then return end
     self.logo:runAction(transition.sequence({
@@ -160,31 +196,9 @@ function GameView:showMsg(text)
     self.msgLabel = Auto.addOpacityBack(self.msgLabel):addTo(self)
 end
 
--- 创建游戏区
-function GameView:createBoard()
-    local items = {}
-    for i=1,16 do
-        items[i] = display.newSprite("#vBox1.png")
-    end
-    local params = {
-        items = items,
-        mode = 1,
-        cols = 4,
-        spacing = 10,
-        border = 10,
-        backPic = "#vBox.png"
-    } --用autoItems将16个框按每列4个，间距10点自动排好，背景框加好。
-    local board = AutoItems.create(params)  
-    self.boardMask = Auto.addMask(board)
-    -- 从返回的参数中获得每个格子的位置信息(贴图位置,直接可用)
-    self.pos = params.pos
-    -- 让board成为一个TouchNode，接受触摸事件
-    board =  TouchNode.new(board,handler(self,self.onBoardTouched))
-    return board 
-end
-
 -- 游戏区的触摸事件，如果是移动类事件回调model去计算，其他给提示。
 function GameView:onBoardTouched(eventId)
+    if self.boardLocked then return end
     if eventId == TOUCH_CLICKED or eventId == TOUCH_DOUBLE_CLICKED then
         self:showMsg(Lang.info.clicked)
     elseif eventId == TOUCH_PRESSED then
@@ -195,6 +209,8 @@ function GameView:onBoardTouched(eventId)
         self:performWithDelay(function ()
             self.board:setTouchEnabled(true)
         end, 0.5)
+    else
+        -- undefine touch event
     end
 end
 
@@ -239,14 +255,14 @@ function GameView:onWin(event)
     elseif event.num == 8192 then 
         --变态的玩家玩到8192，必须停止(没图片了)
         self:showMsg(Lang.info.win8192)
-        self:lockBoard()
+        self:lockBoard(false)
     end
 end
 
 -- 失败事件，给出提示，锁定游戏区。
 function GameView:onLost(event)
     self:showMsg(Lang.info.lost)
-    self:lockBoard()
+    self:lockBoard(false)
 end
 
 -- 移动事件
@@ -261,7 +277,7 @@ function GameView:onMove(event)
     self:showMsg(infos[math.random(#infos)])  
 end
 
--- 合并事件
+-- merge事件
 function GameView:onMerge(event)
     local src = self.cell[event.src].sprite
     local des = self.cell[event.des].sprite
@@ -308,7 +324,7 @@ function GameView:onUndo(event)
             end
         end
     end
-    --删除上次flash生成的cell，找没有修改标记的就是。
+    --删除上次flash生成的cell，找没有检查标记的就是。
     for k,v in pairs(self.cell) do
          if v.checked then
             v.checked = nil
@@ -335,7 +351,7 @@ function GameView:restoreCell(cell,map)
             self:onMove({srcId=map.id, desTag=map.tag, dis=dis})
         end
         self:changeCellNum(cell.sprite,map.v) -- 数字改回来
-        cell.checked = true -- 设置修改过的标记
+        cell.checked = true -- 设置检查标记
     else --这个id的cell已经被删除了，重新生成一个
         self:onFlash({id=map.id,tag=map.tag,num=map.v})
         self.cell[map.id].checked = true 
@@ -348,7 +364,7 @@ function GameView:changeScore(curr)
     self.bestScoreLabel:setString(tostring(GameData.bestScore))
 end
 
--- 改变单元数字
+-- 改变单元数字(换水晶图案)
 function GameView:changeCellNum(sprite,num)
     local frameName = tostring(num)..".png"
     sprite:setDisplayFrame(display.newSpriteFrame(frameName))   
@@ -368,7 +384,6 @@ function GameView:exitHint(flag)
         self.exitLabel = Auto.addOpacityBack(self.exitLabel,255):addTo(self,100)
     end
     self.exitLabel:setVisible(flag)
-    return self.boardLocked
 end
 
 return GameView

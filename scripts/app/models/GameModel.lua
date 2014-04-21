@@ -188,7 +188,7 @@ function GameModel:downMap(srcMap)
 	return map
 end
 
--- 响应玩家的移动事件
+-- 响应View中玩家的移动事件
 function GameModel:move(eventId)
 	-- 保留移动前的map、score用于undo记录
 	self.oldMap = clone(self.map)
