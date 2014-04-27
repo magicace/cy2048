@@ -24,8 +24,7 @@ function MainScene:ctor()
     self:performWithDelay(function ()
         spt:rotateBy(0.8,360)
     end, 0.8)
- 
-end
+ end
 
 function MainScene:startGame()
     self.logoSpt:fadeOut(0.3)
@@ -39,13 +38,16 @@ end
 function MainScene:onEnter()
     if device.platform == "android" then 
         -- avoid unmeant back
+        local onPadEvent = function(event)
+            self.gameCtrl:onExitTouched(event)
+        end
         self:performWithDelay(function()
             -- keypad layer, for android
             local layer = display.newLayer()
-            layer:addKeypadEventListener(handler(self.gameCtrl, self.gameCtrl.onExitTouched))
+            layer:addKeypadEventListener(onPadEvent)
             self:addChild(layer)
             layer:setKeypadEnabled(true)
-        end, 0.5)
+        end, 2) 
     end
 end
 

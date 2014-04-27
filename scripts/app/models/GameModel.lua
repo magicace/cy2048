@@ -20,8 +20,9 @@ function GameModel:ctor(properties)
 		self.undoCell = GameData.undoCell
 		self.currScore = GameData.currScore
 		self.currId = GameData.currId
-
 		self.isRestore = true
+	else
+		self.isRestore = false
 	end
 end
 
@@ -108,7 +109,6 @@ end
 -- 游戏开始后，running= true，开始记录等
 function GameModel:flash(running)
 	self.cell = self:creatNewCell()
-
 	if self.currScore > GameData.bestScore then
 		GameData.bestScore = self.currScore
 	end
@@ -242,8 +242,10 @@ end
 function GameModel:mergeInMap(des,src)
 	des.v = des.v * 2
 	des.hot = true  --设置热点，防止在同一次移动中被两次merge
-
 	self.currScore = self.currScore + des.v
+	if des.v > GameData.bestCell then
+		GameData.bestCell = des.v
+	end
 	self.mergeEventParams = {
 		name=GameModel.MERGE_EVENT,
 		src=src.id,des=des.id,num=des.v,dis=1

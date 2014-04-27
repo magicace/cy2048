@@ -5,7 +5,7 @@
 local Language = {}
 
 Language.info = {
-	start 	= " Touch screen to start game ",
+	start 	= " Welcome to Crystal 2048 ",
 	guide 	= " Sliding on the board to move ",
 	clicked = "Moving is expected ...",
 	pressed = "There's a secret I don't want to tell you",
@@ -18,15 +18,15 @@ Language.info = {
 		" If ystday once more, or game can undo ",
 		" Regret doing, or regret to do? ",
 		" Playing is easy, developing is difficult ",
-		" Touch the BestScore board twice to exit ",
+		" Touch Best board to switch Best-Mode",
 	},
 	merged = {
 		" Good job! ",
 		" Well done! ",
 		" Do you be excited with destorying? ",
 		" Crystal is fascinating, defacing is crime! ",
-		" I believe it's the best one of 2048 game ",
-		" It's said 4096 bigger than 2048, aha? ",
+		" It's a wonderful game, do you think so? ",
+		" To get 4096 is quite an accomplishment ",
 		" Nobody can get to 8192, except rainman ",
 		" It's more dangerous when close to win ",
 		" Don't put all your crystals in one box ",
@@ -43,16 +43,16 @@ Language.info = {
 	restartHint = "Press the button for 1s to restart game",
 	exitHint	= " Tap again to exit game",
 	saved 		= " The Game State Is Saved ",
-	restored 	= " Continue the old game or tap [New Game]",
+	restored 	= " Continue or tap [New] for new game ",
 }
 
 Language.title = {
-	newgame1 	= " New Game ",
-	newgame2 	= " New \n Game " ,
-	text1 		= "Merge and get to 2048 or more",
-	text2 		= "Merge and get to \n2048 or more ...",
+	newgame		= " New ",
+	exit 		= " Exit ",
+	text 		= "Merge and get to \n2048 or more ...",
 	currScore 	= "Score",
-	bestScore 	= "Best",
+	bestScore 	= "BestSc.",
+	bestCell 	= "BestCell",
 }
 
 return Language

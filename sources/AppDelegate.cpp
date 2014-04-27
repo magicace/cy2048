@@ -38,11 +38,10 @@ bool AppDelegate::applicationDidFinishLaunching()
 
     CCLuaStack *pStack = pEngine->getLuaStack();
 
-// #if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS || CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
-    pStack->setXXTEAKeyAndSign("@3dk$!", 6, "XXTEA", 5);
-
+//#if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS || CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
     // load framework
     pStack->loadChunksFromZip("res/framework_precompiled.zip");
+	pStack->setXXTEAKeyAndSign("@3dk$!", 6, "XXTEA", 5);
     pStack->loadChunksFromZip("res/game.zip");
     pStack->executeString("require 'main'");
 
@@ -59,9 +58,6 @@ bool AppDelegate::applicationDidFinishLaunching()
 
     // set script path
     string path = CCFileUtils::sharedFileUtils()->fullPathForFilename(m_projectConfig.getScriptFileRealPath().c_str());
-#endif
-*/
-/*
     size_t pos;
     while ((pos = path.find_first_of("\\")) != std::string::npos)
     {
@@ -89,6 +85,8 @@ bool AppDelegate::applicationDidFinishLaunching()
     CCLOG("LOAD LUA FILE: %s", path.c_str());
     CCLOG("------------------------------------------------");
     pEngine->executeScriptFile(path.c_str());
+
+#endif
 */
     return true;
 }

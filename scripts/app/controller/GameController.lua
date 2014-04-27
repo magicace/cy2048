@@ -8,23 +8,26 @@ local GameController = class("GameController", function ()
 end)
 
 function GameController:ctor()
-    self.backCnt = 0  
+    self.backCnt = 0
+    self.view = require("app.views.GameView").new(handler(self,self.viewCallBack)):addTo(self):hide()
 end
 
 function GameController:startGame()
-    self.view = require("app.views.GameView").new(handler(self,self.viewCallBack)):addTo(self)
+    -- self.view = require("app.views.GameView").new(handler(self,self.viewCallBack)):addTo(self)
     if not app:isObjectExists("myGameDonotNeedObj") then
         self.game = require("app.models.GameModel").new({id="myGameDonotNeedId"})
         app:setObject("myGameDonotNeedObj",self.game)
+        self.view:show()
+        self.view:startGame(self.game)
+    else
+        self.view:restart()
     end
-
-    self.view:startGame(self.game)
     self.game:startGame()
 end
 
 function GameController:viewCallBack(eventId)
     if eventId == TOUCH_RESTART_EVENT then
-        self:removeChild(self.view, true)
+        --self:removeChild(self.view, true)
         -- 开始新游戏时，先清除游戏进度
         self.game:saveGameData()
         self:startGame()

@@ -15,8 +15,10 @@ function MyApp:ctor()
     if io.exists(GameState.getGameStatePath()) then
         GameData = GameState.load()
     end
-    if not GameData.bestScore then
-        GameData.bestScore = 0
+    GameData.bestScore =  GameData.bestScore or 0
+    GameData.bestCell = GameData.bestCell or 0
+    if device.platform == "windows" and device.language == "cn" then
+        ui.DEFAULT_TTF_FONT = "Microsoft YaHei"
     end
 end
 

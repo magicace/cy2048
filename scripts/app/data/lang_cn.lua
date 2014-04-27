@@ -5,7 +5,7 @@
 local Language = {}
 
 Language.info = {
-	start 	= " 触摸屏幕开始游戏 ",
+	start 	= " 欢迎来到水晶2048的世界 ",
 	guide 	= " 手指触摸屏幕并向你希望的方向滑动 ",
 	clicked = " 需要在屏幕上滑动... ",
 	pressed = " 有一个秘密，但是我不想告诉你 ",
@@ -18,7 +18,7 @@ Language.info = {
 		" 能屈能伸真豪杰，落子无悔大豆腐 ",
 		" 鄙视悔棋的家伙，这游戏还能玩？",
 		" 游戏虽易，开发不易，且玩且珍惜 ",
-		" 按两次最高分板可以退出并自动保存游戏 ",
+		" 按最高分板可切换最高分或最高成就 ",
 	},
 	merged = {
 		" 干得漂亮！ ",
@@ -47,12 +47,12 @@ Language.info = {
 }
 
 Language.title = {
-	newgame1 	= " 新游戏 ",
-	newgame2 	= " 重新 \n 开始 " ,
-	text1 		= "合并数字并达到 2048 或更多",
-	text2 		= "合并数字并达到 \n2048 或更多 ...",
+	newgame 	= " 新游戏 ",
+	exit 		= " 退出 ",
+	text 		= "合并数字并达到 \n2048 或更多 ...",
 	currScore 	= "分数",
 	bestScore 	= "最高分",
+	bestCell 	= "最高成就",
 }
 
 

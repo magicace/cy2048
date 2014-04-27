@@ -16,7 +16,7 @@ function GameView:ctor(listener)
     self:createScoreBoard()
     self.board = self:createBoard():addTo(self)
     self.listener = listener
-    self:showMsg(Lang.info.start)
+    self.bestMode = true
 end
 
 -- 锁定游戏区
@@ -60,22 +60,21 @@ function GameView:createScoreBoard()
     }):addTo(currScoreBack)
     self.saveButton = TouchNode.new(currScoreBack,handler(self, self.onSaveTouched))
 
-    -- 最高分数板 = exit按钮
+    -- 最高分数板 = bestMode按钮
     local bestScoreBack = display.newScale9Sprite("#vBox.png",530,topY,CCSize(120,80)):addTo(self)
-    ui.newTTFLabel({
+    self.bestTitle = ui.newTTFLabel({
         text=Lang.title.bestScore,
         size=24,x=60,y=58,align=ui.TEXT_ALIGN_CENTER
     }):addTo(bestScoreBack)
     self.bestScoreLabel = ui.newTTFLabel({
         text=tostring(GameData.bestScore),size=24,x=60,y=20,align=ui.TEXT_ALIGN_CENTER
     }):addTo(bestScoreBack)
-    self.exitButton = TouchNode.new(bestScoreBack,handler(self,self.onExitTouched))
+    self.bestButton = TouchNode.new(bestScoreBack,handler(self,self.onBestTouched))
 
     --不同分辨率下的布局
     if display.height > 900 then
         ui.newTTFLabel({
-            text = display.height < 1000 and
-                Lang.title.text1 or Lang.title.text2,
+            text = Lang.title.text,
             color = ccc3(0,0,0),
             size=24,x=48,y=topY-90
         }):addTo(self)
@@ -86,14 +85,22 @@ function GameView:createScoreBoard()
 
     --创建newGame Button
     local button
+    button = Auto.ttfButton(Lang.title.newgame,24,_,CCSize(120,40)):addTo(self)
     if display.height < 900 then
-        button = Auto.ttfButton(Lang.title.newgame2,24,_,CCSize(120,80))
-        button:pos(270,topY):addTo(self)
-    else
-        button = Auto.ttfButton(Lang.title.newgame1,24,_,CCSize(180,40))
-        button:pos(500,topY - 90):addTo(self)
+        button:pos(250,topY + 20)
+    else     
+        button:pos(400,topY - 90)
     end
     self.newButton = TouchNode.new(button,handler(self,self.onNewTouched))
+
+    --创建exit Button
+    button = Auto.ttfButton(Lang.title.exit,24,_,CCSize(120,40)):addTo(self)
+    if display.height < 900 then
+        button:pos(250,topY - 22)
+    else     
+        button:pos(530,topY - 90)
+    end
+    self.exitButton = TouchNode.new(button,handler(self,self.onExitTouched))
 end
 
 -- 创建游戏区
@@ -132,11 +139,11 @@ function GameView:onNewTouched(eventId)
             self.listener(TOUCH_RESTART_EVENT)
         else
             self:showMsg(Lang.info.restartHint)
-            self:performWithDelay(function ()
-                self.newButton:setColor(ccc3(255,255,255))
-            end, 0.5)
         end
     end
+    self:performWithDelay(function ()
+        self.newButton:setColor(ccc3(255,255,255))
+    end, 0.5)
 end
 
 --Exit按钮被touch
@@ -160,6 +167,12 @@ function GameView:onSaveTouched(eventId)
         end, 0.5)
     end
     --其他操作不做任何提示
+end
+
+--Best按钮被touch，切换bestMode
+function GameView:onBestTouched()
+    self.bestMode = not self.bestMode
+    self:showBest()
 end
 
 -- Logo图标被touch，提供undo操作，隐藏功能
@@ -217,8 +230,8 @@ end
 -- 刷新事件，生成新的cell
 function GameView:onFlash(event)
     local tag = event.tag
-    local pic = "#"..tostring(event.num)..".png"
-    local cell = display.newSprite(pic):pos(self.pos[tag].x,self.pos[tag].y)
+    local cell = self:getCellSprite(event.num)
+    cell:pos(self.pos[tag].x,self.pos[tag].y)
     --维护self.cell列表，保存这个cell的关键信息，使用hash表方便检索。
     self.cell[event.id] = {tag=tag,sprite=cell}
     --正常情况有move和merge，让这些动作先执行一段时间再延迟显示新的cell
@@ -252,10 +265,8 @@ function GameView:onWin(event)
         self:showMsg(Lang.info.win2048)
     elseif event.num == 4096 then
         self:showMsg(Lang.info.win4096)        
-    elseif event.num == 8192 then 
-        --变态的玩家玩到8192，必须停止(没图片了)
+    elseif event.num >= 8192 then 
         self:showMsg(Lang.info.win8192)
-        self:lockBoard(false)
     end
 end
 
@@ -326,7 +337,7 @@ function GameView:onUndo(event)
     end
     --删除上次flash生成的cell，找没有检查标记的就是。
     for k,v in pairs(self.cell) do
-         if v.checked then
+        if v.checked then
             v.checked = nil
         else
             v.sprite:removeSelf()
@@ -361,13 +372,61 @@ end
 -- 改变分数板的分数
 function GameView:changeScore(curr)
     self.currScoreLabel:setString(tostring(curr))
-    self.bestScoreLabel:setString(tostring(GameData.bestScore))
+    self:showBest()
+end
+
+-- 切换最高分/最高成就模式
+function GameView:showBest()
+    if self.bestMode then
+        self.bestTitle:setString(Lang.title.bestCell)
+        self.bestScoreLabel:setString(tostring(GameData.bestCell))
+    else
+        self.bestTitle:setString(Lang.title.bestScore)
+        self.bestScoreLabel:setString(tostring(GameData.bestScore))
+    end
 end
 
 -- 改变单元数字(换水晶图案)
 function GameView:changeCellNum(sprite,num)
-    local frameName = tostring(num)..".png"
-    sprite:setDisplayFrame(display.newSpriteFrame(frameName))   
+    if num > 8192 then
+        sprite:setDisplayFrame(display.newSpriteFrame("vBox.png"))
+        self:showDigital(sprite,num)
+    else
+        local label = sprite:getChildByTag(10)
+        if label then
+            label:removeSelf()
+        end
+        sprite:setDisplayFrame(display.newSpriteFrame(tostring(num)..".png"))
+    end
+end
+
+-- 显示水晶TTF数字(大于8192的情况)
+function GameView:showDigital(sprite,num)
+    local label = sprite:getChildByTag(10)
+    if label then
+        label:setString(tostring(num))
+    else
+        label = ui.newTTFLabel({
+            text = tostring(num),
+            size = 32,
+            color = ccc3(255,128,0),
+            align=ui.TEXT_ALIGN_CENTER,
+            x = 59,
+            y = 59,
+        }):addTo(sprite,10,10)
+    end
+end
+
+-- 创建水晶图案
+function GameView:getCellSprite(num)
+    local sprite
+    if num > 8192 then
+        sprite = display.newSprite("#vBox.png")
+        self:showDigital(sprite,num)
+    else
+        sprite = display.newSprite("#"..tostring(num)..".png")
+    end
+    return sprite
 end
 
 -- 退出游戏提示信息
@@ -384,6 +443,15 @@ function GameView:exitHint(flag)
         self.exitLabel = Auto.addOpacityBack(self.exitLabel,255):addTo(self,100)
     end
     self.exitLabel:setVisible(flag)
+end
+
+function GameView:restart()
+    for k,v in pairs(self.cell) do
+        v.sprite:removeSelf()
+        self.cell[k] = nil
+    end
+    self:changeScore(0)
+    self:showMsg(Lang.info.start)
 end
 
 return GameView
