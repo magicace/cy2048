@@ -452,6 +452,7 @@ function GameView:restart()
     end
     self:changeScore(0)
     self:showMsg(Lang.info.start)
+    self:lockBoard(true)
 end
 
 return GameView
